@@ -5,7 +5,7 @@
 
 #include "THCDeviceTensor.cuh"
 #include "THCDeviceTensorUtils.cuh"
-
+#include "THCDeviceUtils.cuh"
 const int WARP_SIZE = 32;
 
 // The maximum number of threads in a block
@@ -81,7 +81,7 @@ static __device__ __forceinline__ T warpSum(T val) {
 #if __CUDA_ARCH__ >= 300
 #if __CUDA_VERSION >= 9000
   for (int i = 0; i < getMSB(WARP_SIZE); ++i) {
-    val += __shfl_xor(val, 1 << i, WARP_SIZE);
+    val += WARP_SHFL_XOR(val, 1 << i, WARP_SIZE);
   }
 #else
   for (int i = 0; i < getMSB(WARP_SIZE); ++i) {
