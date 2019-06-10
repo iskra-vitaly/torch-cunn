@@ -79,9 +79,15 @@ struct GradOp {
 template <typename T>
 static __device__ __forceinline__ T warpSum(T val) {
 #if __CUDA_ARCH__ >= 300
+#if __CUDA_VERSION >= 9000
   for (int i = 0; i < getMSB(WARP_SIZE); ++i) {
     val += __shfl_xor(val, 1 << i, WARP_SIZE);
   }
+#else
+  for (int i = 0; i < getMSB(WARP_SIZE); ++i) {
+    val += __shfl_xor_sync(0xFFFFFFFF, val, 1 << i, WARP_SIZE);
+  }
+#endif
 #else
   __shared__ T values[MAX_BLOCK_SIZE];
   values[threadIdx.x] = val;
